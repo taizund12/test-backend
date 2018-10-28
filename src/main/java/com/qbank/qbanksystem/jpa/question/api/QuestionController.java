@@ -101,37 +101,6 @@ public class QuestionController {
 		return ResponseEntity.ok().body(questionWsList);
 	}
 
-	// Get all question for a subject
-	@GetMapping(QUESTIONS_SUBJECT_PATH)
-	public ResponseEntity<List<QuestionWS>> getAllQuestionsForSubject(
-			@PathVariable(value = "subjectUuid") String subjectUuid) {
-		Subject subject = subjectDao.findByUuid(subjectUuid)
-				.orElseThrow(() -> new ResourceNotFoundException("subject", "uuid", subjectUuid));
-
-		List<Question> questions = questionDao.findBySubjectId(subject.getId());
-		List<QuestionWS> questionWsList = new ArrayList<>();
-		for (Question question : questions) {
-			questionWsList.add(getQuestionWs(question, productDao.findById(question.getProductId()).get().getUuid(),
-					subject.getUuid(), categoryDao.findById(question.getCategoryId()).get().getUuid()));
-		}
-		return ResponseEntity.ok().body(questionWsList);
-	}
-
-	// Get all question for a category
-	@GetMapping(QUESTIONS_CATEGORY_PATH)
-	public ResponseEntity<List<QuestionWS>> getAllQuestionsForCategory(
-			@PathVariable(value = "categoryUuid") String categoryUuid) {
-		Category category = categoryDao.findByUuid(categoryUuid)
-				.orElseThrow(() -> new ResourceNotFoundException("category", "uuid", categoryUuid));
-		List<Question> questions = questionDao.findByCategoryId(category.getId());
-		List<QuestionWS> questionWsList = new ArrayList<>();
-		for (Question question : questions) {
-			questionWsList.add(getQuestionWs(question, productDao.findById(question.getProductId()).get().getUuid(),
-					subjectDao.findById(question.getSubjectId()).get().getUuid(), category.getUuid()));
-		}
-		return ResponseEntity.ok().body(questionWsList);
-	}
-
 	// Get a single question by id
 	@GetMapping(QUESTIONS_ID_PATH)
 	public ResponseEntity<QuestionWS> getQuestionById(@PathVariable(value = "questionUuid") String questionUuid) {
