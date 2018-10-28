@@ -9,9 +9,9 @@ import com.qbank.qbanksystem.jpa.category.Category;
 
 public interface CategoryDao extends CrudRepository<Category, Long> {
 
-	public Optional<Category> findByName(String name);
+	Optional<Category> findByName(String name);
 
-	public Optional<Category> findByUuid(String id);
+	Optional<Category> findByUuid(String id);
 
-	public List<Category> findBySubjectId(String id);
+	List<Category> findBySubjectId(String id);
 }

@@ -38,7 +38,7 @@ public class QuestionService {
 	private AnswerChoiceWS convertToAnswerWs(AnswerChoice answer) {
 		AnswerChoiceWS answerWs = new AnswerChoiceWS();
 		answerWs.setChoice(answer.getChoice());
-		answerWs.setCorrect(answer.getCorrect());
+		answerWs.setCorrect(answer.isCorrect());
 		return answerWs;
 	}
 

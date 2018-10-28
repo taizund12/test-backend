@@ -1,6 +1,6 @@
 package com.qbank.qbanksystem.jpa.product;
 
-import java.io.Serializable;
+import static com.qbank.qbanksystem.jpa.util.Constants.Tables.PRODUCT;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,20 +8,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import com.qbank.qbanksystem.common.AbstractTimestampEntity;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@Entity(name = "product")
+import com.qbank.qbanksystem.common.AbstractTimestampEntity;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class Product extends AbstractTimestampEntity implements Serializable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+@Entity(name = PRODUCT)
+public class Product extends AbstractTimestampEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -34,5 +29,4 @@ public class Product extends AbstractTimestampEntity implements Serializable {
 
 	@Column(name = "name", unique = true, nullable = false)
 	private String name;
-
 }

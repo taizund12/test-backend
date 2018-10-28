@@ -1,6 +1,6 @@
 package com.qbank.qbanksystem.jpa.category;
 
-import java.io.Serializable;
+import static com.qbank.qbanksystem.jpa.util.Constants.Tables.CATEGORY;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,19 +8,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import com.qbank.qbanksystem.common.AbstractTimestampEntity;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@Entity(name = "category")
+import com.qbank.qbanksystem.common.AbstractTimestampEntity;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class Category extends AbstractTimestampEntity implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+@Entity(name = CATEGORY)
+public class Category extends AbstractTimestampEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,5 +32,4 @@ public class Category extends AbstractTimestampEntity implements Serializable {
 
 	@Column(name = "subject_id", nullable = false)
 	private Long subjectId;
-
 }
