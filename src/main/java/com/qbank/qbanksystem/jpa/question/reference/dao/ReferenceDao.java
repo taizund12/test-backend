@@ -9,7 +9,7 @@ import com.qbank.qbanksystem.jpa.question.reference.Reference;
 
 public interface ReferenceDao extends CrudRepository<Reference, Long> {
 
-	public Optional<Reference> findByQuestion(String question);
+	public Optional<Reference> findByReference(String question);
 
 	public List<Reference> findByQuestionId(String id);
 }

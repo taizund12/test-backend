@@ -26,10 +26,9 @@ public class Reference extends AbstractTimestampEntity implements Serializable {
 	@Column(name = "id")
 	private Long id;
 
-	@Column(name = "reference", unique = true, nullable = false)
+	@Column(name = "reference", nullable = false)
 	private String reference;
 
 	@Column(name = "question_id", nullable = false)
-	private String questionId;
-
+	private Long questionId;
 }

@@ -33,6 +33,6 @@ public class Reinforcement extends AbstractTimestampEntity implements Serializab
 	private String answer;
 
 	@Column(name = "question_id", nullable = false)
-	private String questionId;
+	private Long questionId;
 
 }

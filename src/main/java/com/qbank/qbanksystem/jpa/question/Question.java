@@ -44,11 +44,8 @@ public class Question extends AbstractTimestampEntity implements Serializable {
 	@Column(name = "learning_objective", nullable = false)
 	private String learningObjective;
 
-	@Column(name = "question_stem", nullable = false)
+	@Column(name = "question_stem", unique = true, nullable = false)
 	private String questionStem;
-
-	@Column(name = "answer_index", nullable = false)
-	private Long answerIndex;
 
 	@Column(name = "explanation", nullable = false)
 	private String explanation;

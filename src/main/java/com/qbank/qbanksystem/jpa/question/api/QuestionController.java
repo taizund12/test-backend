@@ -1,5 +1,7 @@
 package com.qbank.qbanksystem.jpa.question.api;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import javax.validation.Valid;
@@ -9,32 +11,46 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.qbank.qbanksystem.exception.ResourceAlreadyExistsException;
 import com.qbank.qbanksystem.exception.ResourceNotFoundException;
+import com.qbank.qbanksystem.jpa.category.Category;
 import com.qbank.qbanksystem.jpa.category.dao.CategoryDao;
+import com.qbank.qbanksystem.jpa.product.Product;
 import com.qbank.qbanksystem.jpa.product.dao.ProductDao;
 import com.qbank.qbanksystem.jpa.question.Question;
 import com.qbank.qbanksystem.jpa.question.QuestionWS;
 import com.qbank.qbanksystem.jpa.question.answerchoice.AnswerChoice;
+import com.qbank.qbanksystem.jpa.question.answerchoice.AnswerChoiceWS;
 import com.qbank.qbanksystem.jpa.question.answerchoice.dao.AnswerChoiceDao;
 import com.qbank.qbanksystem.jpa.question.dao.QuestionDao;
 import com.qbank.qbanksystem.jpa.question.keypoint.KeyPoint;
+import com.qbank.qbanksystem.jpa.question.keypoint.KeyPointWS;
 import com.qbank.qbanksystem.jpa.question.keypoint.dao.KeyPointDao;
 import com.qbank.qbanksystem.jpa.question.reference.Reference;
+import com.qbank.qbanksystem.jpa.question.reference.ReferenceWS;
 import com.qbank.qbanksystem.jpa.question.reference.dao.ReferenceDao;
 import com.qbank.qbanksystem.jpa.question.reinforcement.Reinforcement;
+import com.qbank.qbanksystem.jpa.question.reinforcement.ReinforcementWS;
 import com.qbank.qbanksystem.jpa.question.reinforcement.dao.ReinforcementDao;
+import com.qbank.qbanksystem.jpa.subject.Subject;
 import com.qbank.qbanksystem.jpa.subject.dao.SubjectDao;
 
 @RestController
 @RequestMapping(value = "/api/v1")
 public class QuestionController {
+
+	private static final String QUESTIONS_PATH = "/questions";
+	private static final String QUESTIONS_ID_PATH = "/questions/{questionUuid}";
+	private static final String QUESTIONS_PRODUCT_PATH = "/questions/productId/{productUuid}";
+	private static final String QUESTIONS_SUBJECT_PATH = "/questions/productId/{subjectUuid}";
+	private static final String QUESTIONS_CATEGORY_PATH = "/questions/categoryId/{categoryUuid}";
+
 	@Autowired
-	private QuestionDao dao;
+	private QuestionDao questionDao;
 
 	@Autowired
 	private ProductDao productDao;
@@ -57,100 +73,113 @@ public class QuestionController {
 	@Autowired
 	private ReferenceDao referenceDao;
 
-	// Get all question
-	@GetMapping("/questions")
-	public ResponseEntity<Iterable<Question>> getAllQuestions() {
-		return ResponseEntity.ok().body(dao.findAll());
-	}
-
 	// Get all question for a product
-	@GetMapping("/questions/productId/{id}")
-	public ResponseEntity<Iterable<Question>> getAllQuestionsForProduct(@PathVariable(value = "id") String id) {
-		productDao.findByUuid(id).orElseThrow(() -> new ResourceNotFoundException("product", "id", id));
-		return ResponseEntity.ok().body(dao.findByProductId(id));
+	@GetMapping(QUESTIONS_PRODUCT_PATH)
+	public ResponseEntity<Iterable<Question>> getAllQuestionsForProduct(
+			@PathVariable(value = "productUuid") String productUuid) {
+		Product product = productDao.findByUuid(productUuid)
+				.orElseThrow(() -> new ResourceNotFoundException("product", "uuid", productUuid));
+		return ResponseEntity.ok().body(questionDao.findByProductId(product.getId()));
 	}
 
 	// Get all question for a subject
-	@GetMapping("/questions/subjectId/{id}")
-	public ResponseEntity<Iterable<Question>> getAllQuestionsForSubject(@PathVariable(value = "id") String id) {
-		subjectDao.findByUuid(id).orElseThrow(() -> new ResourceNotFoundException("subject", "id", id));
-		return ResponseEntity.ok().body(dao.findBySubjectId(id));
+	@GetMapping(QUESTIONS_SUBJECT_PATH)
+	public ResponseEntity<Iterable<Question>> getAllQuestionsForSubject(
+			@PathVariable(value = "subjectUuid") String subjectUuid) {
+		Subject subject = subjectDao.findByUuid(subjectUuid)
+				.orElseThrow(() -> new ResourceNotFoundException("subject", "uuid", subjectUuid));
+		return ResponseEntity.ok().body(questionDao.findBySubjectId(subject.getId()));
 	}
 
 	// Get all question for a category
-	@GetMapping("/questions/categoryId/{id}")
-	public ResponseEntity<Iterable<Question>> getAllQuestionsForCategory(@PathVariable(value = "id") String id) {
-		categoryDao.findByUuid(id).orElseThrow(() -> new ResourceNotFoundException("category", "id", id));
-		return ResponseEntity.ok().body(dao.findByCategoryId(id));
+	@GetMapping(QUESTIONS_CATEGORY_PATH)
+	public ResponseEntity<Iterable<Question>> getAllQuestionsForCategory(
+			@PathVariable(value = "categoryUuid") String categoryUuid) {
+		Category category = categoryDao.findByUuid(categoryUuid)
+				.orElseThrow(() -> new ResourceNotFoundException("category", "uuid", categoryUuid));
+		return ResponseEntity.ok().body(questionDao.findByCategoryId(category.getId()));
 	}
 
 	// Get a single question by id
-	@GetMapping("/questions/id/{id}")
-	public ResponseEntity<Question> getQuestionById(@PathVariable(value = "id") String id) {
-		Question question = dao.findByUuid(id).orElseThrow(() -> new ResourceNotFoundException("question", "id", id));
+	@GetMapping(QUESTIONS_ID_PATH)
+	public ResponseEntity<Question> getQuestionById(@PathVariable(value = "questionUuid") String questionUuid) {
+		Question question = questionDao.findByUuid(questionUuid)
+				.orElseThrow(() -> new ResourceNotFoundException("question", "uuid", questionUuid));
 		return ResponseEntity.ok().body(question);
 	}
 
 	// Create a new question
-	@PostMapping("/questions")
-	public Question createSubject(@Valid @RequestBody QuestionWS questionRequest) {
-		Question question = new Question();
-		String questionId = UUID.randomUUID().toString();
-		question.setUuid(UUID.randomUUID().toString());
-		productDao.findByUuid(questionRequest.getProductId())
-				.orElseThrow(() -> new ResourceNotFoundException("product", "id", questionRequest.getProductId()));
-		subjectDao.findByUuid(questionRequest.getSubjectId())
-				.orElseThrow(() -> new ResourceNotFoundException("subject", "id", questionRequest.getSubjectId()));
-		categoryDao.findByUuid(questionRequest.getCategoryId())
-				.orElseThrow(() -> new ResourceNotFoundException("category", "id", questionRequest.getCategoryId()));
+	@PostMapping(QUESTIONS_PATH)
+	public QuestionWS createSubject(@Valid @RequestBody QuestionWS questionRequest) {
+		if (questionDao.findByQuestionStem(questionRequest.getQuestionStem()).isPresent()) {
+			throw new ResourceAlreadyExistsException("question", "stem", questionRequest.getQuestionStem());
+		} else {
 
-		question.setAnswerIndex(questionRequest.getAnswerIndex());
+		}
+
+		Question question = new Question();
+		String id = UUID.randomUUID().toString();
+		question.setUuid(id);
+		questionRequest.setQuestionId(id);
+
+		Product product = productDao.findByUuid(questionRequest.getProductId())
+				.orElseThrow(() -> new ResourceNotFoundException("product", "id", questionRequest.getProductId()));
+		question.setProductId(product.getId());
+
+		Subject subject = subjectDao.findByUuid(questionRequest.getSubjectId())
+				.orElseThrow(() -> new ResourceNotFoundException("subject", "id", questionRequest.getSubjectId()));
+		question.setSubjectId(subject.getId());
+
+		Category category = categoryDao.findByUuid(questionRequest.getCategoryId())
+				.orElseThrow(() -> new ResourceNotFoundException("category", "id", questionRequest.getCategoryId()));
+		question.setCategoryId(category.getId());
+
 		question.setExplanation(questionRequest.getExplanation());
 		question.setQuestionStem(questionRequest.getQuestionStem());
 		question.setLearningObjective(questionRequest.getLearningObjective());
 
-		for (AnswerChoice answerChoice : questionRequest.getAnswerChoices()) {
-			answerChoice.setQuestionId(questionId);
-			answerChoiceDao.save(answerChoice);
+		List<Reinforcement> reinforcementList = new ArrayList<>();
+		for (ReinforcementWS reinforcementQuestionWs : questionRequest.getReinforcementQuestions()) {
+			if (reinforcementDao.findByQuestion(reinforcementQuestionWs.getQuestion()).isPresent()) {
+				throw new ResourceAlreadyExistsException("reinforcement", "question",
+						reinforcementQuestionWs.getQuestion());
+			} else {
+				Reinforcement reinforcement = new Reinforcement();
+				reinforcement.setAnswer(reinforcementQuestionWs.getAnswer());
+				reinforcement.setQuestion(reinforcementQuestionWs.getQuestion());
+				reinforcementList.add(reinforcement);
+			}
 		}
 
-		for (KeyPoint keyPoint : questionRequest.getKeyPoints()) {
-			keyPoint.setQuestionId(questionId);
-			keyPointDao.save(keyPoint);
+		Long questionId = questionDao.save(question).getId();
+
+		for (Reinforcement reinforcement : reinforcementList) {
+			reinforcement.setQuestionId(questionId);
+			reinforcementDao.save(reinforcement);
 		}
 
-		for (Reinforcement reinforcementQuestion : questionRequest.getReinforcementQuestions()) {
-			reinforcementQuestion.setQuestionId(questionId);
-			reinforcementDao.save(reinforcementQuestion);
-		}
-
-		for (Reference reference : questionRequest.getReferences()) {
+		for (ReferenceWS referenceWs : questionRequest.getReferences()) {
+			Reference reference = new Reference();
+			reference.setReference(referenceWs.getReference());
 			reference.setQuestionId(questionId);
 			referenceDao.save(reference);
 		}
 
-		return dao.save(question);
-	}
+		for (AnswerChoiceWS answerChoiceWs : questionRequest.getAnswerChoices()) {
+			AnswerChoice answerChoice = new AnswerChoice();
+			answerChoice.setChoice(answerChoiceWs.getChoice());
+			answerChoice.setCorrect(answerChoiceWs.isCorrect());
+			answerChoice.setQuestionId(questionId);
+			answerChoiceDao.save(answerChoice);
+		}
 
-	// Update a question by id
-	@PutMapping("/questions/id/{id}")
-	public Question updateQuestionById(@PathVariable(value = "id") String id,
-			@Valid @RequestBody Question updatedQuestion) {
-		Question question = dao.findByUuid(id).orElseThrow(() -> new ResourceNotFoundException("question", "id", id));
-		return updateQuestion(question, updatedQuestion);
-	}
+		for (KeyPointWS keyPointWs : questionRequest.getKeyPoints()) {
+			KeyPoint keyPoint = new KeyPoint();
+			keyPoint.setKeyPoint(keyPointWs.getKeyPoint());
+			keyPoint.setQuestionId(questionId);
+			keyPointDao.save(keyPoint);
+		}
 
-	private Question updateQuestion(Question question, Question updatedQuestion) {
-		productDao.findByUuid(updatedQuestion.getProductId())
-				.orElseThrow(() -> new ResourceNotFoundException("product", "id", updatedQuestion.getProductId()));
-		subjectDao.findByUuid(updatedQuestion.getSubjectId())
-				.orElseThrow(() -> new ResourceNotFoundException("subject", "id", updatedQuestion.getSubjectId()));
-		categoryDao.findByUuid(updatedQuestion.getCategoryId())
-				.orElseThrow(() -> new ResourceNotFoundException("category", "id", updatedQuestion.getCategoryId()));
-
-		question.setProductId(updatedQuestion.getProductId());
-		question.setSubjectId(updatedQuestion.getSubjectId());
-		question.setCategoryId(updatedQuestion.getCategoryId());
-		return dao.save(question);
+		return questionRequest;
 	}
 }

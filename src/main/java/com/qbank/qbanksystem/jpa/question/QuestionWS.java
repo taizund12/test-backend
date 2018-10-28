@@ -11,6 +11,8 @@ import lombok.Data;
 
 @Data
 public class QuestionWS {
+	private String questionId;
+
 	private String productId;
 
 	private String subjectId;
@@ -22,8 +24,6 @@ public class QuestionWS {
 	private String questionStem;
 
 	private List<AnswerChoiceWS> answerChoices;
-
-	private int answerIndex;
 
 	private String explanation;
 

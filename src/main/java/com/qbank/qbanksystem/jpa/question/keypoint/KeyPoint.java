@@ -26,10 +26,10 @@ public class KeyPoint extends AbstractTimestampEntity implements Serializable {
 	@Column(name = "id")
 	private Long id;
 
-	@Column(name = "key_point", unique = true, nullable = false)
+	@Column(name = "key_point", nullable = false)
 	private String keyPoint;
 
 	@Column(name = "question_id", nullable = false)
-	private String questionId;
+	private Long questionId;
 
 }
