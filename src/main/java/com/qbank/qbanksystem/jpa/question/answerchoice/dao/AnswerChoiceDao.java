@@ -10,5 +10,5 @@ public interface AnswerChoiceDao extends CrudRepository<AnswerChoice, Long> {
 
 	public AnswerChoice findByChoice(String choice);
 
-	public List<AnswerChoice> findByQuestionId(String id);
+	public List<AnswerChoice> findByQuestionId(Long id);
 }

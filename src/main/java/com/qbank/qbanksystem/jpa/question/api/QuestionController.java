@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.base.Preconditions;
 import com.qbank.qbanksystem.exception.ResourceAlreadyExistsException;
 import com.qbank.qbanksystem.exception.ResourceNotFoundException;
 import com.qbank.qbanksystem.jpa.category.Category;
@@ -22,6 +23,7 @@ import com.qbank.qbanksystem.jpa.category.dao.CategoryDao;
 import com.qbank.qbanksystem.jpa.product.Product;
 import com.qbank.qbanksystem.jpa.product.dao.ProductDao;
 import com.qbank.qbanksystem.jpa.question.Question;
+import com.qbank.qbanksystem.jpa.question.QuestionService;
 import com.qbank.qbanksystem.jpa.question.QuestionWS;
 import com.qbank.qbanksystem.jpa.question.answerchoice.AnswerChoice;
 import com.qbank.qbanksystem.jpa.question.answerchoice.AnswerChoiceWS;
@@ -49,6 +51,8 @@ public class QuestionController {
 	private static final String QUESTIONS_SUBJECT_PATH = "/questions/productId/{subjectUuid}";
 	private static final String QUESTIONS_CATEGORY_PATH = "/questions/categoryId/{categoryUuid}";
 
+	private QuestionService questionService;
+
 	@Autowired
 	private QuestionDao questionDao;
 
@@ -73,39 +77,77 @@ public class QuestionController {
 	@Autowired
 	private ReferenceDao referenceDao;
 
+	public void init() {
+		Preconditions.checkNotNull(questionService, "questionService is required");
+	}
+
+	public void setQuestionService(QuestionService questionService) {
+		this.questionService = questionService;
+	}
+
 	// Get all question for a product
 	@GetMapping(QUESTIONS_PRODUCT_PATH)
-	public ResponseEntity<Iterable<Question>> getAllQuestionsForProduct(
+	public ResponseEntity<List<QuestionWS>> getAllQuestionsForProduct(
 			@PathVariable(value = "productUuid") String productUuid) {
 		Product product = productDao.findByUuid(productUuid)
 				.orElseThrow(() -> new ResourceNotFoundException("product", "uuid", productUuid));
-		return ResponseEntity.ok().body(questionDao.findByProductId(product.getId()));
+		List<Question> questions = questionDao.findByProductId(product.getId());
+		List<QuestionWS> questionWsList = new ArrayList<>();
+		for (Question question : questions) {
+			questionWsList.add(getQuestionWs(question, product.getUuid(),
+					subjectDao.findById(question.getSubjectId()).get().getUuid(),
+					categoryDao.findById(question.getCategoryId()).get().getUuid()));
+		}
+		return ResponseEntity.ok().body(questionWsList);
 	}
 
 	// Get all question for a subject
 	@GetMapping(QUESTIONS_SUBJECT_PATH)
-	public ResponseEntity<Iterable<Question>> getAllQuestionsForSubject(
+	public ResponseEntity<List<QuestionWS>> getAllQuestionsForSubject(
 			@PathVariable(value = "subjectUuid") String subjectUuid) {
 		Subject subject = subjectDao.findByUuid(subjectUuid)
 				.orElseThrow(() -> new ResourceNotFoundException("subject", "uuid", subjectUuid));
-		return ResponseEntity.ok().body(questionDao.findBySubjectId(subject.getId()));
+
+		List<Question> questions = questionDao.findBySubjectId(subject.getId());
+		List<QuestionWS> questionWsList = new ArrayList<>();
+		for (Question question : questions) {
+			questionWsList.add(getQuestionWs(question, productDao.findById(question.getProductId()).get().getUuid(),
+					subject.getUuid(), categoryDao.findById(question.getCategoryId()).get().getUuid()));
+		}
+		return ResponseEntity.ok().body(questionWsList);
 	}
 
 	// Get all question for a category
 	@GetMapping(QUESTIONS_CATEGORY_PATH)
-	public ResponseEntity<Iterable<Question>> getAllQuestionsForCategory(
+	public ResponseEntity<List<QuestionWS>> getAllQuestionsForCategory(
 			@PathVariable(value = "categoryUuid") String categoryUuid) {
 		Category category = categoryDao.findByUuid(categoryUuid)
 				.orElseThrow(() -> new ResourceNotFoundException("category", "uuid", categoryUuid));
-		return ResponseEntity.ok().body(questionDao.findByCategoryId(category.getId()));
+		List<Question> questions = questionDao.findByCategoryId(category.getId());
+		List<QuestionWS> questionWsList = new ArrayList<>();
+		for (Question question : questions) {
+			questionWsList.add(getQuestionWs(question, productDao.findById(question.getProductId()).get().getUuid(),
+					subjectDao.findById(question.getSubjectId()).get().getUuid(), category.getUuid()));
+		}
+		return ResponseEntity.ok().body(questionWsList);
 	}
 
 	// Get a single question by id
 	@GetMapping(QUESTIONS_ID_PATH)
-	public ResponseEntity<Question> getQuestionById(@PathVariable(value = "questionUuid") String questionUuid) {
+	public ResponseEntity<QuestionWS> getQuestionById(@PathVariable(value = "questionUuid") String questionUuid) {
 		Question question = questionDao.findByUuid(questionUuid)
 				.orElseThrow(() -> new ResourceNotFoundException("question", "uuid", questionUuid));
-		return ResponseEntity.ok().body(question);
+
+		List<AnswerChoice> answerChoices = answerChoiceDao.findByQuestionId(question.getId());
+		List<Reinforcement> reinforcements = reinforcementDao.findByQuestionId(question.getId());
+		List<KeyPoint> keypoints = keyPointDao.findByQuestionId(question.getId());
+		List<Reference> references = referenceDao.findByQuestionId(question.getId());
+		String productId = productDao.findById(question.getProductId()).get().getUuid();
+		String subjectId = subjectDao.findById(question.getSubjectId()).get().getUuid();
+		String categoryId = categoryDao.findById(question.getCategoryId()).get().getUuid();
+		QuestionWS quetionWs = questionService.convertToQuestionWs(question, answerChoices, reinforcements, keypoints,
+				references, productId, subjectId, categoryId);
+		return ResponseEntity.ok().body(quetionWs);
 	}
 
 	// Create a new question
@@ -181,5 +223,11 @@ public class QuestionController {
 		}
 
 		return questionRequest;
+	}
+
+	private QuestionWS getQuestionWs(Question question, String productId, String subjectId, String categoryId) {
+		return questionService.convertToQuestionWs(question, answerChoiceDao.findByQuestionId(question.getId()),
+				reinforcementDao.findByQuestionId(question.getId()), keyPointDao.findByQuestionId(question.getId()),
+				referenceDao.findByQuestionId(question.getId()), productId, subjectId, categoryId);
 	}
 }

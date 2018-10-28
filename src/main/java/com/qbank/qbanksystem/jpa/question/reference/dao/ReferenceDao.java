@@ -11,5 +11,5 @@ public interface ReferenceDao extends CrudRepository<Reference, Long> {
 
 	public Optional<Reference> findByReference(String question);
 
-	public List<Reference> findByQuestionId(String id);
+	public List<Reference> findByQuestionId(Long id);
 }

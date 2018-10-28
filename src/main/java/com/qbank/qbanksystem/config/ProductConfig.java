@@ -7,6 +7,8 @@ import com.qbank.qbanksystem.jpa.category.CategoryService;
 import com.qbank.qbanksystem.jpa.category.api.CategoryController;
 import com.qbank.qbanksystem.jpa.product.ProductService;
 import com.qbank.qbanksystem.jpa.product.api.ProductController;
+import com.qbank.qbanksystem.jpa.question.QuestionService;
+import com.qbank.qbanksystem.jpa.question.api.QuestionController;
 import com.qbank.qbanksystem.jpa.subject.SubjectService;
 import com.qbank.qbanksystem.jpa.subject.api.SubjectController;
 
@@ -47,6 +49,18 @@ public class ProductConfig {
 	@Bean
 	public CategoryService categoryService() {
 		return new CategoryService();
+	}
+
+	@Bean
+	public QuestionController questionController() {
+		QuestionController questionController = new QuestionController();
+		questionController.setQuestionService(questionService());
+		return questionController;
+	}
+
+	@Bean
+	public QuestionService questionService() {
+		return new QuestionService();
 	}
 
 }

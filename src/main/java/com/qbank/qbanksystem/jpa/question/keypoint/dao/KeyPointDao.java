@@ -11,5 +11,5 @@ public interface KeyPointDao extends CrudRepository<KeyPoint, Long> {
 
 	public Optional<KeyPoint> findByKeyPoint(String keyPoint);
 
-	public List<KeyPoint> findByQuestionId(String id);
+	public List<KeyPoint> findByQuestionId(Long id);
 }

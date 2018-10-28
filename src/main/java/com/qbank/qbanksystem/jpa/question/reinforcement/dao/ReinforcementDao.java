@@ -11,5 +11,5 @@ public interface ReinforcementDao extends CrudRepository<Reinforcement, Long> {
 
 	public Optional<Reinforcement> findByQuestion(String question);
 
-	public List<Reinforcement> findByQuestionId(String id);
+	public List<Reinforcement> findByQuestionId(Long id);
 }
