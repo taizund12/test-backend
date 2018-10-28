@@ -48,8 +48,6 @@ public class QuestionController {
 	private static final String QUESTIONS_PATH = "/questions";
 	private static final String QUESTIONS_ID_PATH = "/questions/{questionUuid}";
 	private static final String QUESTIONS_PRODUCT_PATH = "/questions/productId/{productUuid}";
-	private static final String QUESTIONS_SUBJECT_PATH = "/questions/productId/{subjectUuid}";
-	private static final String QUESTIONS_CATEGORY_PATH = "/questions/categoryId/{categoryUuid}";
 
 	private QuestionService questionService;
 
