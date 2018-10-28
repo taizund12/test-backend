@@ -27,8 +27,11 @@ public class AnswerChoice extends AbstractTimestampEntity implements Serializabl
 	@Column(name = "id")
 	private Long id;
 
-	@Column(name = "answer", nullable = false)
-	private String answer;
+	@Column(name = "choice", nullable = false)
+	private String choice;
+
+	@Column(name = "correct", nullable = false)
+	private Boolean correct;
 
 	@Column(name = "question_id", nullable = false)
 	private Long questionId;

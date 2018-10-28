@@ -8,8 +8,7 @@ import com.qbank.qbanksystem.jpa.product.Product;
 
 public interface ProductDao extends CrudRepository<Product, Long> {
 
-	public Optional<Product> findByName(String name);
-
 	public Optional<Product> findByUuid(String id);
+	public Optional<Product> findByName(String name);
 
 }

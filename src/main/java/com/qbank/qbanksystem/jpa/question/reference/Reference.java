@@ -26,10 +26,6 @@ public class Reference extends AbstractTimestampEntity implements Serializable {
 	@Column(name = "id")
 	private Long id;
 
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "uuid", nullable = false, unique = true, updatable = false, length = 36)
-	private String uuid;
-
 	@Column(name = "reference", unique = true, nullable = false)
 	private String reference;
 

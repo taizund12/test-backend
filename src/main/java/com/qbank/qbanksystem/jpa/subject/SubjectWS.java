@@ -5,5 +5,6 @@ import lombok.Data;
 @Data
 public class SubjectWS {
 	private String name;
-	private Long productId;
+	private String uuid;
+	private String productUuid;
 }

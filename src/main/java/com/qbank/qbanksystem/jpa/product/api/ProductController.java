@@ -1,7 +1,11 @@
 package com.qbank.qbanksystem.jpa.product.api;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,71 +19,79 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.base.Preconditions;
+import com.qbank.qbanksystem.common.Constants;
 import com.qbank.qbanksystem.exception.ResourceAlreadyExistsException;
 import com.qbank.qbanksystem.exception.ResourceNotFoundException;
 import com.qbank.qbanksystem.jpa.product.Product;
+import com.qbank.qbanksystem.jpa.product.ProductService;
 import com.qbank.qbanksystem.jpa.product.ProductWS;
 import com.qbank.qbanksystem.jpa.product.dao.ProductDao;
 
 @RestController
-@RequestMapping(value = "/api/v1")
+@RequestMapping(value = Constants.V1)
 public class ProductController {
+
+	private static final String PRODUCTS_PATH = "/products";
+	private static final String PRODUCT_ID_PATH = "/products/{productUuid}";
+
+	private ProductService productService;
 
 	@Autowired
 	private ProductDao dao;
 
-	@GetMapping("/products")
-	public ResponseEntity<Iterable<ProductWS>> getAllProducts() {
-		return ResponseEntity.ok().body(dao.findAll());
+	@PostConstruct
+	public void init() {
+		Preconditions.checkNotNull(productService, "productService is required");
+	}
+
+	public void setProductService(ProductService productService) {
+		this.productService = productService;
+	}
+
+	@GetMapping(PRODUCTS_PATH)
+	public ResponseEntity<List<ProductWS>> getAllProducts() {
+		return ResponseEntity.ok().body(productService.convertToProductWS(
+				StreamSupport.stream(dao.findAll().spliterator(), false).collect(Collectors.toList())));
 	}
 
 	// Create a new product
-	@PostMapping("/products")
-	public ProductWS createProduct(@Valid @RequestBody ProductWS productws) {
-
-		productws.setUuid(UUID.randomUUID().toString());
+	@PostMapping(PRODUCTS_PATH)
+	public ResponseEntity<ProductWS> createProduct(@Valid @RequestBody ProductWS productws) {
 		if (dao.findByName(productws.getName()).isPresent()) {
 			throw new ResourceAlreadyExistsException("product", "name", productws.getName());
 		} else {
-			return dao.save(productws);
+			Product product = new Product();
+			product.setUuid(UUID.randomUUID().toString());
+			product.setName(productws.getName());
+			return ResponseEntity.ok().body(productService.convertToProductWS(dao.save(product)));
 		}
 	}
 
 	// Get a single product by id
-	@GetMapping("/products/{productUuid}")
+	@GetMapping(PRODUCT_ID_PATH)
 	public ResponseEntity<ProductWS> getProductById(@PathVariable(value = "productUuid") String productUuid) {
 		Product product = dao.findByUuid(productUuid)
-				.orElseThrow(() -> new ResourceNotFoundException("product", "id", productUuid));
-		return ResponseEntity.ok().body(product);
+				.orElseThrow(() -> new ResourceNotFoundException("product", "uuid", productUuid));
+		return ResponseEntity.ok().body(productService.convertToProductWS(product));
 	}
 
 	// Update a product by id
-	@PutMapping("/products/{productUuid}")
-	public Product updateProductById(@PathVariable(value = "productUuid") String productUuid,
-			@Valid @RequestBody Product productDetails) {
-		Product product = dao.findByUuid(id).orElseThrow(() -> new ResourceNotFoundException("product", "id", id));
-		product.setName(productDetails.getName());
-		return dao.save(product);
-	}
-
-	// Delete a Product by name
-	@DeleteMapping("/product/{name}")
-	public ResponseEntity<?> deleteProductByName(@PathVariable(value = "name") String name) {
-		Product product = dao.findByName(name)
-				.orElseThrow(() -> new ResourceNotFoundException("product", "name", name));
-		dao.delete(product);
-		return ResponseEntity.ok().build();
+	@PutMapping(PRODUCT_ID_PATH)
+	public ResponseEntity<ProductWS> updateProductById(@PathVariable(value = "productUuid") String productUuid,
+			@Valid @RequestBody ProductWS productws) {
+		Product product = dao.findByUuid(productUuid)
+				.orElseThrow(() -> new ResourceNotFoundException("product", "uuid", productUuid));
+		product.setName(productws.getName());
+		return ResponseEntity.ok().body(productService.convertToProductWS(dao.save(product)));
 	}
 
 	// Delete a Product by id
-	@DeleteMapping("/product/{id}")
-	public ResponseEntity<?> deleteProductById(@PathVariable(value = "id") String id) {
-		Product product = dao.findByUuid(id).orElseThrow(() -> new ResourceNotFoundException("product", "id", id));
+	@DeleteMapping(PRODUCT_ID_PATH)
+	public ResponseEntity<?> deleteProductById(@PathVariable(value = "productUuid") String productUuid) {
+		Product product = dao.findByUuid(productUuid)
+				.orElseThrow(() -> new ResourceNotFoundException("product", "uuid", productUuid));
 		dao.delete(product);
 		return ResponseEntity.ok().build();
-	}
-
-	private Product createProduct(ProductWS product) {
-
 	}
 }

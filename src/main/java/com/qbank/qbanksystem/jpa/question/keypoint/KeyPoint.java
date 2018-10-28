@@ -26,10 +26,6 @@ public class KeyPoint extends AbstractTimestampEntity implements Serializable {
 	@Column(name = "id")
 	private Long id;
 
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "uuid", nullable = false, unique = true, updatable = false, length = 36)
-	private String uuid;
-
 	@Column(name = "key_point", unique = true, nullable = false)
 	private String keyPoint;
 

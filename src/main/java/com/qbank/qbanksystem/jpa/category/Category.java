@@ -35,6 +35,6 @@ public class Category extends AbstractTimestampEntity implements Serializable {
 	private String name;
 
 	@Column(name = "subject_id", nullable = false)
-	private String subjectId;
+	private Long subjectId;
 
 }

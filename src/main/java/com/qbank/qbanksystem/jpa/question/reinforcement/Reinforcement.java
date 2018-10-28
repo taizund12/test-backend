@@ -26,10 +26,6 @@ public class Reinforcement extends AbstractTimestampEntity implements Serializab
 	@Column(name = "id")
 	private Long id;
 
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "uuid", nullable = false, unique = true, updatable = false, length = 36)
-	private String uuid;
-
 	@Column(name = "question", unique = true, nullable = false)
 	private String question;
 

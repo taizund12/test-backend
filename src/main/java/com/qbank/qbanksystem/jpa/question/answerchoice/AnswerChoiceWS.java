@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class AnswerChoiceWS {
-	private String choice;
 
+	private String choice;
 	private boolean correct;
 }
