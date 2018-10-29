@@ -1,6 +1,6 @@
 package com.qbank.qbanksystem.jpa.question.answerchoice;
 
-import java.io.Serializable;
+import static com.qbank.qbanksystem.jpa.util.Constants.Tables.ANSWER_CHOICES;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,19 +8,17 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import com.qbank.qbanksystem.common.AbstractTimestampEntity;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@Entity(name = "answer_choice")
+import org.hibernate.annotations.Type;
+
+import com.qbank.qbanksystem.common.AbstractTimestampEntity;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AnswerChoice extends AbstractTimestampEntity implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+@Entity(name = ANSWER_CHOICES)
+public class AnswerChoice extends AbstractTimestampEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -31,7 +29,8 @@ public class AnswerChoice extends AbstractTimestampEntity implements Serializabl
 	private String choice;
 
 	@Column(name = "correct", nullable = false)
-	private Boolean correct;
+	@Type(type = "org.hibernate.type.NumericBooleanType")
+	private boolean correct = false;
 
 	@Column(name = "question_id", nullable = false)
 	private Long questionId;
